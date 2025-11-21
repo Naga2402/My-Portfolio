@@ -99,38 +99,129 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Contact form handling
-const contactForm = document.getElementById('contactForm');
-
-contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', () => {
+    const contactForm = document.getElementById('contactForm');
     
-    // Get form values
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const subject = document.getElementById('subject').value;
-    const message = document.getElementById('message').value;
-    
-    // Create mailto link
-    const mailtoLink = `mailto:v.sanjay2000@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
-    
-    // Open email client
-    window.location.href = mailtoLink;
-    
-    // Show success message
-    const submitButton = contactForm.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'Message Sent!';
-    submitButton.style.background = '#10b981';
-    
-    // Reset form
-    contactForm.reset();
-    
-    // Reset button after 3 seconds
-    setTimeout(() => {
-        submitButton.textContent = originalText;
-        submitButton.style.background = '';
-    }, 3000);
+    if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            // Validate form
+            if (!name || !email || !subject || !message) {
+                showFormMessage('Please fill in all fields', 'error');
+                return;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showFormMessage('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            // Create mailto link with formatted message
+            const emailBody = `Name: ${name}%0D%0AEmail: ${email}%0D%0A%0D%0AMessage:%0D%0A${message}`;
+            const mailtoLink = `mailto:v.sanjay2000@gmail.com?subject=${encodeURIComponent(subject)}&body=${emailBody}`;
+            
+            // Show loading state
+            const submitButton = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Opening Email...';
+            submitButton.disabled = true;
+            submitButton.style.opacity = '0.7';
+            
+            // Open email client
+            try {
+                window.location.href = mailtoLink;
+                
+                // Show success message
+                setTimeout(() => {
+                    submitButton.textContent = '✓ Message Sent!';
+                    submitButton.style.background = '#10b981';
+                    submitButton.style.opacity = '1';
+                    showFormMessage('Email client opened successfully!', 'success');
+                    
+                    // Reset form
+                    contactForm.reset();
+                    
+                    // Reset button after 4 seconds
+                    setTimeout(() => {
+                        submitButton.textContent = originalText;
+                        submitButton.style.background = '';
+                        submitButton.disabled = false;
+                        submitButton.style.opacity = '1';
+                    }, 4000);
+                }, 500);
+            } catch (error) {
+                showFormMessage('Unable to open email client. Please email directly at v.sanjay2000@gmail.com', 'error');
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+                submitButton.style.opacity = '1';
+            }
+        });
+    }
 });
+
+// Helper function to show form messages
+function showFormMessage(message, type) {
+    // Remove existing message if any
+    const existingMessage = document.querySelector('.form-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `form-message form-message-${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        padding: 1rem;
+        margin-top: 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        animation: slideDown 0.3s ease;
+        ${type === 'success' 
+            ? 'background: #d1fae5; color: #065f46; border: 1px solid #10b981;' 
+            : 'background: #fee2e2; color: #991b1b; border: 1px solid #ef4444;'}
+    `;
+    
+    // Add animation
+    const style = document.createElement('style');
+    if (!document.getElementById('form-message-style')) {
+        style.id = 'form-message-style';
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Insert message after form
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.appendChild(messageDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            messageDiv.style.animation = 'slideDown 0.3s ease reverse';
+            setTimeout(() => messageDiv.remove(), 300);
+        }, 5000);
+    }
+}
 
 // Typing effect for hero title (optional enhancement)
 function typeWriter(element, text, speed = 100) {
