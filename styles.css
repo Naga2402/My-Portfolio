@@ -282,6 +282,12 @@ body {
     animation-delay: 2s;
 }
 
+.floating-card:nth-child(4) {
+    top: 10%;
+    right: 10%;
+    animation-delay: 1.5s;
+}
+
 .floating-card i {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
